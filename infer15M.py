@@ -9,6 +9,7 @@ from keras import backend as K
 from keras.optimizers import SGD
 from sklearn.model_selection import train_test_split
 import tensorflow as tf
+from sklearn.preprocessing import StandardScaler, MinMaxScaler, MaxAbsScaler
 
 # hard code args for testing
 # args={}
@@ -17,24 +18,12 @@ import tensorflow as tf
 # args['model'] = '/projects/CVD_Research/brettin/March_30/DIR.ml.ADRP-ADPR_pocket1_dock.csv.reg.csv/reg_go.autosave.model.h5
 
 psr = argparse.ArgumentParser(description='inferencing on descriptors')
-psr.add_argument('--in',  default='in_file.pkl')
+psr.add_argument('--in',  default='in_file.csv')
 psr.add_argument('--model',  default='model.h5')
 psr.add_argument('--out', default='out_file.csv')
 args=vars(psr.parse_args())
 
 print(args)
-
-# read the pickle descriptor file
-df=pd.read_csv(args['in'])
-cols=df.shape[1] - 1
-rows=df.shape[0]
-samples=np.empty([rows,cols],dtype='float32')
-samples=df.iloc[:,1:]
-samples=np.nan_to_num(samples)
-
-from sklearn.preprocessing import StandardScaler, MinMaxScaler, MaxAbsScaler
-scaler = StandardScaler()
-df_x = scaler.fit_transform(samples)
 
 # a custom metric was used during training
 def r2(y_true, y_pred):
@@ -55,8 +44,23 @@ def auroc( y_true, y_pred ) :
                         name='sklearnAUC' )
 	return score
 
-
 dependencies={'r2' : r2, 'tf_auc' : tf_auc, 'auroc' : auroc }
+
+
+# read the csv descriptor file
+# assumes there is a header
+df=pd.read_csv(args['in'])
+cols=df.shape[1] - 1
+rows=df.shape[0]
+samples=np.empty([rows,cols],dtype='float32')
+samples=df.iloc[:,1:]
+samples=np.nan_to_num(samples)
+
+scaler = StandardScaler()
+df_x = scaler.fit_transform(samples)
+np.savetxt(args['out']+'mean_', scaler.mean_, delimiter=",")
+np.savetxt(args['out']+'var_', scaler.var_, delimiter=",")
+
 model = load_model(args['model'], custom_objects=dependencies)
 model.summary()
 model.compile(loss='mean_squared_error',optimizer=SGD(lr=0.0001, momentum=0.9),metrics=['mae',r2])
