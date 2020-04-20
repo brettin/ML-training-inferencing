@@ -34,21 +34,21 @@ print(args)
 # the new descriptor files have 1826 features
 
 with open (args['dh']) as f:
-	reader = csv.reader(f, delimiter=",")
-	drow = next(reader)
-	drow = [x.strip() for x in drow]
+    reader = csv.reader(f, delimiter=",")
+    drow = next(reader)
+    drow = [x.strip() for x in drow]
 
 tdict={}
 for i in range(len(drow)):
-	tdict[drow[i]]=i
+    tdict[drow[i]]=i
 
 f.close()
 del reader
 
 with open (args['th']) as f:
-	reader = csv.reader(f, delimiter=",")
-	trow = next(reader)
-	trow = [x.strip() for x in trow]
+    reader = csv.reader(f, delimiter=",")
+    trow = next(reader)
+    trow = [x.strip() for x in trow]
 
 f.close()
 del reader
@@ -79,8 +79,8 @@ samples=np.nan_to_num(samples)
 reduced=np.empty([rows,len(trow)],dtype='float32')
 i=0
 for h in trow:
-	reduced[:,i]=samples[:,tdict[h] ]
-	i=i+1
+    reduced[:,i]=samples[:,tdict[h] ]
+    i=i+1
 
 # del samples
 
@@ -91,22 +91,22 @@ df_x = scaler.fit_transform(reduced)
 # a custom metric was used during training
 
 def r2(y_true, y_pred):
-	SS_res =  K.sum(K.square(y_true - y_pred))
-	SS_tot = K.sum(K.square(y_true - K.mean(y_true)))
-	return (1 - SS_res/(SS_tot + K.epsilon()))
+    SS_res =  K.sum(K.square(y_true - y_pred))
+    SS_tot = K.sum(K.square(y_true - K.mean(y_true)))
+    return (1 - SS_res/(SS_tot + K.epsilon()))
 
 def tf_auc(y_true, y_pred):
-	auc = tf.metrics.auc(y_true, y_pred)[1]
-	K.get_session().run(tf.local_variables_initializer())
-	return auc
+    auc = tf.metrics.auc(y_true, y_pred)[1]
+    K.get_session().run(tf.local_variables_initializer())
+    return auc
 
 def auroc( y_true, y_pred ) :
-	score = tf.py_func( lambda y_true, y_pred : roc_auc_score( y_true, y_pred, average='macro', sample_weight=None).astype('float32'),
+    score = tf.py_func( lambda y_true, y_pred : roc_auc_score( y_true, y_pred, average='macro', sample_weight=None).astype('float32'),
                         [y_true, y_pred],
                         'float32',
                         stateful=False,
                         name='sklearnAUC' )
-	return score
+    return score
 
 
 dependencies={'r2' : r2, 'tf_auc' : tf_auc, 'auroc' : auroc }
@@ -118,7 +118,11 @@ predictions=model.predict(df_x)
 assert(len(predictions) == rows)
 
 with open (args['out'], "w") as f:
-	for n in range(rows):
-		print ( "{},{},{}".format(df.iloc[n,0][0],predictions[n][0],df.index[n] ), file=f)
+    for n in range(rows):
+        if len(df.iloc[1,0]) == 0:
+            # IDENTIFIER_LIST is empty, use smile
+            print ( "{},{},{}".format(df.index[n],predictions[n][0],df.index[n] ), file=f)
+        else:
+            print ( "{},{},{}".format(df.iloc[n,0][0],predictions[n][0],df.index[n] ), file=f)
 
 
