@@ -10,6 +10,8 @@ arg2=$2
 
 CLUSTER=false
 
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+
 if $CLUSTER; then
     DASK=$HOME/scheduler.json
     if [ -f "$DASK" ]; then
@@ -18,7 +20,7 @@ if $CLUSTER; then
 
             i=$n
             b=$(basename $n)
-            python compute_percentiles.py --in $i --out "$b".top"$arg2".csv --perc $arg2 --dask $DASK > "$b".percentiles.log 2>&1
+            python $DIR/compute_percentiles.py --in $i --out "$b".top"$arg2".csv --perc $arg2 --dask $DASK > "$b".percentiles.log 2>&1
             tail -n +2 "$b".top"$arg2".csv | cut -f2,3 -d',' > "$b".top"$arg2".csv.1 ;
             sort -k2,2 -t',' -nr "$b".top"$arg2".csv.1 > "$b".top"$arg2".csv.2
             echo "name,dock" > "$b".top"$arg2".csv.3
@@ -35,7 +37,7 @@ else
 
         i=$n
         b=$(basename $n)
-        python compute_percentiles.py --in $i --out "$b".top"$arg2".csv --perc $arg2 > "$b".percentiles.log 2>&1
+        python $DIR/compute_percentiles.py --in $i --out "$b".top"$arg2".csv --perc $arg2 > "$b".percentiles.log 2>&1
         tail -n +2 "$b".top"$arg2".csv | cut -f2,3 -d',' > "$b".top"$arg2".csv.1 ;
         sort -k2,2 -t',' -nr "$b".top"$arg2".csv.1 > "$b".top"$arg2".csv.2
         echo "name,dock" > "$b".top"$arg2".csv.3
