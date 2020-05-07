@@ -127,7 +127,7 @@ def main():
     psr.add_argument('--model',  default='model.h5')
     psr.add_argument('--dh',  default='../descriptor_headers.csv')
     psr.add_argument('--th',  default='../training_headers.csv')
-    # psr.add_argument('--out', default='out_file.csv')
+    psr.add_argument('--out', default='', help='output directory')
     args = vars(psr.parse_args())
     print(args)
 
@@ -140,7 +140,7 @@ def main():
         try:
             print(f'processing {pkl}')
             rows, df, df_x = load_dataset_from_pkl(dh_dict, th_list, DATA_BASE_DIR + pkl)
-            run_infer(model, rows, df, df_x, f'Infer_{pkl}')
+            run_infer(model, rows, df, df_x, f'{args.out}/{pkl}')
         except UnicodeDecodeError:
             print(f'***** cannot process {pkl}')
             # pass
