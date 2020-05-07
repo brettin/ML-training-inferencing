@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import csv
 import argparse
+from pathlib import Path
 
 from keras.models import load_model
 from keras import backend as K
@@ -138,8 +139,11 @@ def main():
     for pkl in pkl_list:
         try:
             print(f'processing {pkl}')
+            out_file = Path(pkl).stem + '.csv'
+            out_file = Path(args["out"], out_file)
+
             rows, df, df_x = load_dataset_from_pkl(dh_dict, th_list, pkl)
-            run_infer(model, rows, df, df_x, f'{args["out"]}/{pkl.split("/")[-1]}')
+            run_infer(model, rows, df, df_x, out_file)
         except UnicodeDecodeError:
             print(f'***** cannot process {pkl}')
             # pass
