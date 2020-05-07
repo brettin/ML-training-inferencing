@@ -131,7 +131,6 @@ def main():
     args = vars(psr.parse_args())
     print(args)
 
-    DATA_BASE_DIR = "/lambda_stor/data/brettin/descriptors/v1.0/descriptors/"
     dh_dict, th_list = load_headers(args['dh'], args['th'])
     model = load_save_model(args['model'])
 
@@ -139,7 +138,7 @@ def main():
     for pkl in pkl_list:
         try:
             print(f'processing {pkl}')
-            rows, df, df_x = load_dataset_from_pkl(dh_dict, th_list, DATA_BASE_DIR + pkl)
+            rows, df, df_x = load_dataset_from_pkl(dh_dict, th_list, pkl)
             run_infer(model, rows, df, df_x, f'{args["out"]}/{pkl.split("/")[-1]}')
         except UnicodeDecodeError:
             print(f'***** cannot process {pkl}')
