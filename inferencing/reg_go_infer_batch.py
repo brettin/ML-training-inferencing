@@ -110,7 +110,7 @@ def load_save_model(model_path):
 
 
 def run_infer(model, rows, df, df_x, output_path):
-    predictions = model.predict(df_x, batch_size=10000)
+    predictions = model.predict(df_x, batch_size=1000)
     assert(len(predictions) == rows)
 
     with open(output_path, "w") as f:
