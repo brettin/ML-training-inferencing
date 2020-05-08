@@ -16,26 +16,30 @@ export PATH=$PATH:/homes/brettin/covid19/ML-Code
 	echo ""
 	exit 1
 }
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
 max_device=$(( $1-1 ))
-dh=/homes/brettin/covid19/ML-Code/descriptor_headers.csv
-th=/homes/brettin/covid19/ML-Code/training_headers.csv
+dh=/homes/brettin/covid19/ML-training-inferencing/descriptor_headers.csv
+th=/homes/brettin/covid19/ML-training-inferencing/training_headers.csv
 
 mkdir -p DIR.$2
 cd DIR.$2
 
 for m in $(find $3 -name "*.autosave.model.h5") ; do
 	d=$(basename $(dirname $m ))
+	echo "making directory $d"
 	mkdir -p $d
 	cd $d
+	echo $(date)
 	for n in $(seq 0 $max_device) ; do 
 		export CUDA_VISIBLE_DEVICES=$(( $n % 8 ))
 		echo "CUDA_VISIBLE_DEVICES = $CUDA_VISIBLE_DEVICES"
-		echo "running: reg_go_infer.sh ../../"$2"0$n $m $dh $th > 0$n.log 2>&1 &"
-		# reg_go_infer.sh ../../"$2"0$n $m $dh $th > 0$n.log 2>&1 &
+		echo "running: $DIR/reg_go_infer_batch.py --in ../../$20$n --model $m --dh $dh --th $th > 0$n.log 2>&1 &"
+		python $DIR/reg_go_infer_batch.py --in ../../"$2"0$n --model $m --dh $dh --th $th > 0$n.log 2>&1 &
 	done
 	cd ..
 	wait
+	echo $(date)
 done
 cd ..
 
