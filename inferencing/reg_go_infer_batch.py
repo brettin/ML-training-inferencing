@@ -4,6 +4,7 @@ import pandas as pd
 import csv
 import argparse
 from pathlib import Path
+import time
 
 from keras.models import load_model
 from keras import backend as K
@@ -40,7 +41,6 @@ def load_pkl_list(pkl_list_path):
         pkl_list = []
         reader = csv.reader(f, delimiter=" ")
         for line in reader:
-            # pkl_list.append([x.strip() for x in line])
             pkl_list.append(line[0])
 
     return pkl_list
@@ -136,17 +136,51 @@ def main():
     model = load_save_model(args['model'])
 
     pkl_list = load_pkl_list(args['in'])
-    for pkl in pkl_list:
-        try:
-            print(f'processing {pkl}')
+    pkl = pkl_list[0]
+    ext = Path(pkl).suffix
+    if ext == '.pkl':
+        for pkl in pkl_list:
+            try:
+                print(f'processing {pkl}')
+                out_file = Path(pkl).stem + '.csv'
+                out_file = Path(args["out"], out_file)
+
+                rows, df, df_x = load_dataset_from_pkl(dh_dict, th_list, pkl)
+                run_infer(model, rows, df, df_x, out_file)
+            except UnicodeDecodeError:
+                print(f'***** cannot process {pkl}')
+    elif ext == '.parquet':
+        for pkl in pkl_list:
             out_file = Path(pkl).stem + '.csv'
             out_file = Path(args["out"], out_file)
 
-            rows, df, df_x = load_dataset_from_pkl(dh_dict, th_list, pkl)
-            run_infer(model, rows, df, df_x, out_file)
-        except UnicodeDecodeError:
-            print(f'***** cannot process {pkl}')
-            # pass
+            start = time.time()
+            df = pd.read_parquet(pkl)
+            end = time.time()
+            print(f'reading parquet: {end - start}')
+            start = time.time()
+            predictions = model.predict(df.iloc[:, 2:1615], batch_size=1000)
+            end = time.time()
+            print(f'inference: {end - start}')
+            with open(out_file, "w") as f:
+                for n in range(len(predictions)):
+                    print("{},{},{}".format(df.index[n], predictions[n][0], df.index[n]), file=f)
+    elif ext == '.feather':
+        for pkl in pkl_list:
+            out_file = Path(pkl).stem + '.csv'
+            out_file = Path(args["out"], out_file)
+
+            start = time.time()
+            df = pd.read_feather(pkl)
+            end = time.time()
+            print(f'reading feather: {end - start}')
+            start = time.time()
+            predictions = model.predict(df.iloc[:, 2:1615], batch_size=1000)
+            end = time.time()
+            print(f'inference: {end - start}')
+            with open(out_file, "w") as f:
+                for n in range(len(predictions)):
+                    print("{},{},{}".format(df.index[n], predictions[n][0], df.index[n]), file=f)
 
 
 if __name__ == '__main__':
