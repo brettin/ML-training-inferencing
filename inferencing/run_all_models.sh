@@ -21,6 +21,7 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 max_device=$(( $1-1 ))
 dh=/homes/brettin/covid19/ML-training-inferencing/descriptor_headers.csv
 th=/homes/brettin/covid19/ML-training-inferencing/training_headers.csv
+dd=/lambda_stor/data/hsyoo/descriptors/descriptors-ob3
 
 mkdir -p DIR.$2
 cd DIR.$2
@@ -34,8 +35,8 @@ for m in $(find $3 -name "*.autosave.model.h5") ; do
 	for n in $(seq 0 $max_device) ; do 
 		export CUDA_VISIBLE_DEVICES=$(( $n % 8 ))
 		echo "CUDA_VISIBLE_DEVICES = $CUDA_VISIBLE_DEVICES"
-		echo "running: $DIR/reg_go_infer_batch.py --in ../../$20$n --model $m --dh $dh --th $th > 0$n.log 2>&1 &"
-		python $DIR/reg_go_infer_batch.py --in ../../"$2"0$n --model $m --dh $dh --th $th > 0$n.log 2>&1 &
+		echo "running: $DIR/reg_go_infer_dg.py --in $dd/$20$n --model $m --dh $dh --th $th > 0$n.log 2>&1 &"
+		python $DIR/reg_go_infer_dg.py --in $dd/"$2"0$n --model $m --dh $dh --th $th > 0$n.log 2>&1 &
 	done
 	cd ..
 	wait
