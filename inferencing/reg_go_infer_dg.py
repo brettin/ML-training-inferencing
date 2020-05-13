@@ -10,7 +10,7 @@ from keras import backend as K
 from keras.optimizers import SGD
 from sklearn.preprocessing import StandardScaler
 import tensorflow as tf
-from data_loader import DataLoader
+from data_loader import DataLoader, PredictLogger
 from reg_go_infer_batch import load_pkl_list, load_save_model
 
 
@@ -28,21 +28,20 @@ def main():
     pkl = pkl_list[0]
     ext = Path(pkl).suffix
 
+    in_file = Path(args['in'])
+    out_file = str(in_file.stem + in_file.suffix)
+    label_file = Path(args['out'], out_file + '.label.csv')
+    pred_file = Path(args['out'], out_file + '.pred.csv')
+
     if ext == '.parquet' or ext == '.feather':
         model = load_save_model(args['model'])
-        data_gen = DataLoader(file_format=ext, input_list=pkl_list)
+        data_gen = DataLoader(file_format=ext, input_list=pkl_list, label_file=label_file)
 
         predictions = model.predict_generator(
             data_gen,
-            workers=2,
+            callbacks=[PredictLogger(pred_file=pred_file)],
         )
-        labels = data_gen.get_labels()
-
-        out_file = str(Path(args['in']).stem + Path(args['in']).suffix + '.csv')
-        out_file = Path(args['out'], out_file)
-        with open(out_file, "w") as f:
-            for n in range(len(predictions)):
-                print("{},{},{}".format(labels[n][0], predictions[n][0], labels[n][1]), file=f)
+        data_gen.close()
     else:
         print(f"{ext} format is not supported")
 
