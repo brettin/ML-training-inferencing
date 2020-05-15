@@ -1,12 +1,10 @@
 import argparse
 from pathlib import Path
 import time
-import math
 import functools
+import sys
 
 import pandas as pd
-import keras
-import tensorflow as tf
 import numpy as np
 from sklearn.preprocessing import StandardScaler
 from reg_go_infer_batch import load_headers, load_pkl_list as load_input_list
@@ -65,7 +63,8 @@ def process(desc_col_idx, desc_col_names, args, input_file):
 
         return 1
     except:
-        print(f'Error in processing {input_file}') 
+        print(f'Error in processing {input_file}')
+        print("Unexpected error:", sys.exc_info()[0])
         return 0
     
 
