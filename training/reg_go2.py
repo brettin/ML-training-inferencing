@@ -44,17 +44,15 @@ BATCH = 32
 
 data_path = args['in']
         
-df_toss = (pd.read_csv(data_path,nrows=1).values)
-
-print('df_toss:', df_toss.shape)
-
-PL = df_toss.size
-PS = PL - 1
-
-print('PL=',PL)
-
+# df_toss = (pd.read_csv(data_path,nrows=1).values)
+# df_toss = (pd.read_parquet(data_path, nrows=1).values
+# print('df_toss:', df_toss.shape)
+#PL = df_toss.size
+#PS = PL - 1
+# print('PL=',PL)
 #PL     = 6213   # 38 + 60483
 #PS     = 6212   # 60483
+
 DR    = 0.1      # Dropout rate
 
 def r2(y_true, y_pred):
@@ -90,11 +88,13 @@ def load_data():
 
     data_path = args['in']
         
-    df = (pd.read_csv(data_path,skiprows=1).values).astype('float32')
+    # df = (pd.read_csv(data_path,skiprows=1).values).astype('float32')
+    df = pd.read_parquet(datafile)
 
-    df_y = df[:,0].astype('float32')
-    df_x = df[:, 1:PL].astype(np.float32)
-
+    # df_y = df[:,0].astype('float32')
+    df_y = df['reg'].astype('float32')
+    # df_x = df[:, 1:PL].astype(np.float32)
+    df_x = df.iloc[:,6:].astype(np.float32)
 
 #    scaler = MaxAbsScaler()
         
@@ -117,6 +117,7 @@ print('X_test shape:', X_test.shape)
 print('Y_train shape:', Y_train.shape)
 print('Y_test shape:', Y_test.shape)
 
+PS=df_x.shape[1]
 
 inputs = Input(shape=(PS,))
 x = Dense(250, activation='relu')(inputs)
@@ -175,10 +176,14 @@ score = model.evaluate(X_test, Y_test, verbose=0)
 print(score)
 
 print(history.history.keys())
+# dict_keys(['val_loss', 'val_mae', 'val_r2', 'loss', 'mae', 'r2', 'lr'])
 
 # summarize history for MAE                                                                                                              
-plt.plot(history.history['mean_absolute_error'])
-plt.plot(history.history['val_mean_absolute_error'])
+#plt.plot(history.history['mean_absolute_error'])
+plt.plot(history.history['mae'])
+#plt.plot(history.history['val_mean_absolute_error'])
+plt.plot(history.history['val_mae'])
+
 plt.title('Model Mean Absolute Error')
 plt.ylabel('mae')
 plt.xlabel('epoch')
