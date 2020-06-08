@@ -1,5 +1,6 @@
 import pandas as pd
 import keras
+import numpy as np
 import csv
 import sys
 import threading, queue
@@ -52,6 +53,10 @@ class DataLoader(keras.utils.Sequence):
         except:
             print("Unexpected error:", sys.exc_info()[0])
             print(f'error loading {file_name}')
+            # return Empty matrix to continue
+            batch_x = pd.DataFrame(data=np.zeros((10000, 1613)))
+            batch_y = pd.DataFrame(data=np.zeros((10000, 2)))
+            return batch_x, batch_y
 
     def close(self):
         self.labels_q.put(None)

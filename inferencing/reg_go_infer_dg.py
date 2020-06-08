@@ -18,8 +18,6 @@ def main():
     psr = argparse.ArgumentParser(description='inferencing on descriptors')
     psr.add_argument('--in',  default='G17.input_test')
     psr.add_argument('--model',  default='model.h5')
-    psr.add_argument('--dh',  default='../descriptor_headers.csv')
-    psr.add_argument('--th',  default='../training_headers.csv')
     psr.add_argument('--out', default='', help='output directory')
     args = vars(psr.parse_args())
     print(args)
