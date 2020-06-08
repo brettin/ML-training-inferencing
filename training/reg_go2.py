@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import os
 import sys
-import gzip
+import csv
 import argparse
 
 import math
@@ -83,18 +83,38 @@ class Attention(ke.layers.Layer):
        return input_shape
 
 
+def load_headers(desc_headers, train_headers):
+    with open(desc_headers) as f:
+        reader = csv.reader(f, delimiter=",")
+        dh_row = next(reader)
+        dh_row = [x.strip() for x in dh_row]
+
+    dh_dict = {}
+    for i in range(len(dh_row)):
+        dh_dict[dh_row[i]] = i
+
+    with open(train_headers) as f:
+        reader = csv.reader(f, delimiter=",")
+        th_list = next(reader)
+        th_list = [x.strip() for x in th_list]
+
+    return dh_dict, th_list
+
 
 def load_data():
 
     data_path = args['in']
-        
+    dh_dict, th_list = load_headers('../descriptor_headers.csv', '../training_headers.csv')
+    offset = 6  # descriptor starts at index 6
+    desc_col_idx = [dh_dict[key] + offset for key in th_list]
+
     # df = (pd.read_csv(data_path,skiprows=1).values).astype('float32')
-    df = pd.read_parquet(datafile)
+    df = pd.read_parquet(data_path)
 
     # df_y = df[:,0].astype('float32')
     df_y = df['reg'].astype('float32')
     # df_x = df[:, 1:PL].astype(np.float32)
-    df_x = df.iloc[:,6:].astype(np.float32)
+    df_x = df.iloc[:, desc_col_idx].astype(np.float32)
 
 #    scaler = MaxAbsScaler()
         
@@ -117,7 +137,7 @@ print('X_test shape:', X_test.shape)
 print('Y_train shape:', Y_train.shape)
 print('Y_test shape:', Y_test.shape)
 
-PS=df_x.shape[1]
+PS=X_train.shape[1]
 
 inputs = Input(shape=(PS,))
 x = Dense(250, activation='relu')(inputs)
