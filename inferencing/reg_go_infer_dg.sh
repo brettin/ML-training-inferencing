@@ -40,10 +40,10 @@ for i in $(seq $file_index $(($file_index+6-1)) ) ; do
       echo "making directory $d"
       mkdir -p $local_prefix/DIR.$2/$d
       echo "running on host: $HOSTNAME with device: $device"
-      echo "starting: $(date)"
+      echo "starting gpu $i: $(date)"
       echo "calling: python $DIR/reg_go_infer_dg.py --in $names_file --out $local_prefix/DIR.$2/$d --model $m"
       python $DIR/reg_go_infer_dg.py --in $names_file --out $local_prefix/DIR.$2/$d --model $m
-      echo "finishing: $(date)"
+      echo "finishing gpu $i: $(date)"
     done
 
     wait
