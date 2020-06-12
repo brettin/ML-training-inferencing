@@ -296,6 +296,8 @@ pred_test = predict_yaml_test[:,0]
 
 np.savetxt("pred_train.csv", pred_train, delimiter=".", newline='\n', fmt="%.3f")
 np.savetxt("pred_test.csv", pred_test, delimiter=",", newline='\n',fmt="%.3f")
+np.savetxt("Y_train.csv", Y_train, delimiter=",", newline='\n',fmt="%.3f")
+np.savetxt("Y_test.csv", Y_test, delimiter=",", newline='\n',fmt="%.3f")
 
 print('Correlation prediction on test and Y_test:', np.corrcoef( pred_test, Y_test))
 print('Correlation prediction on train and Y_train:', np.corrcoef( pred_train, Y_train))
