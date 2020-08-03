@@ -62,6 +62,37 @@ class DataLoader(keras.utils.Sequence):
         self.labels_q.put(None)
 
 
+class DataLoaderCancer(DataLoader):
+    def __init__(self, file_format=None, input_list=[], label_file=None, gene_exp_label=None, gene_exp=[]):
+        DataLoader.__init__(self, file_format, input_list, label_file)
+        self.gene_exp_label = gene_exp_label
+        self.gene_exp_df = pd.DataFrame(data=[gene_exp], dtype=np.float32)
+        # cl = pd.DataFrame(data=[gene_exp], dtype=np.float32)
+        # self.this_cl_batch = cl.loc[cl.index.repeat(10000)].reset_index(drop=True)
+ 
+
+    def __getitem__(self, idx):
+        batch_x, batch_y = self.load_dataset(self.input_list[idx])
+
+        if idx > 0 or (idx == 0 and self.first_called == False):
+            batch_y.insert(0, column='CELL_ID', value=self.gene_exp_label)
+            labels = batch_y.values.tolist()
+            self.labels_q.put(labels)
+
+        if idx == 0 and self.first_called == True:
+            self.labels_q.put(None)
+
+        if idx == 0 and self.first_called == False:
+            self.first_called = True
+
+        # concatenate ge vectors
+        batch_size = len(batch_y)
+        this_cl_batch = self.gene_exp_df.loc[self.gene_exp_df.index.repeat(batch_size)].reset_index(drop=True)
+        merged_x = pd.concat([batch_x, this_cl_batch], axis=1)
+
+        return merged_x, batch_y
+
+
 class PredictLogger(keras.callbacks.Callback):
     def __init__(self, pred_file=None):
         self.pred_file = pred_file

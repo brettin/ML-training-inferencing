@@ -1,8 +1,9 @@
 #!/bin/bash
+unset OMP_NUM_THREADS
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
-prefix="/gpfs/alpine/scratch/brettin/med110"
+prefix="/gpfs/alpine/med110/proj-shared/hsyoo/CANCER_Infer"
 local_prefix="/mnt/bb/$USER"
 
 
@@ -10,6 +11,19 @@ local_prefix="/mnt/bb/$USER"
 file_index=$1
 file_prefix=$2
 model_dir=$3
+
+function copy_to_local {
+  infile=$1
+  slice=$2
+  echo "copy_to_local $infile $slice"
+  mkdir -p "$local_prefix"/datasets/"$slice"
+  for ifile in $(cat $infile) ; do
+    echo "cp -n $ifile $local_prefix/datasets/$slice"
+    cp -n $ifile "$local_prefix"/datasets/"$slice"
+    b=$(basename $ifile)
+    echo "$local_prefix/datasets/$slice/$b" >> $local_prefix/datasets/$(basename $infile)
+  done
+}
 
 for i in $(seq $file_index $(($file_index+6-1)) ) ; do
 
@@ -24,6 +38,10 @@ for i in $(seq $file_index $(($file_index+6-1)) ) ; do
     echo "file offset: $i"
 
     if [ $i -lt 10 ] ; then
+      names_file="$file_prefix""000""$i"
+    elif [ $i -lt 100 ] ; then
+      names_file="$file_prefix""00""$i"
+    elif [ $i -lt 1000 ] ; then
       names_file="$file_prefix""0""$i"
     else
       names_file="$file_prefix""$i"
@@ -33,6 +51,8 @@ for i in $(seq $file_index $(($file_index+6-1)) ) ; do
 
     mkdir -p "$prefix"/DIR."$2"
     mkdir -p "$local_prefix"/DIR."$2"
+    copy_to_local $names_file $device
+    names_file="/mnt/bb/$USER/datasets/$(basename $names_file)"
 
     echo "looking for models"
     for m in $(find $3 -name "*.autosave.model.h5") ; do
@@ -42,20 +62,22 @@ for i in $(seq $file_index $(($file_index+6-1)) ) ; do
       echo "running on host: $HOSTNAME with device: $device"
       echo "starting gpu $i: $(date)"
       echo "calling: python $DIR/reg_go_infer_dg.py --in $names_file --out $local_prefix/DIR.$2/$d --model $m"
-      python $DIR/reg_go_infer_dg.py --in $names_file --out $local_prefix/DIR.$2/$d --model $m
+      python $DIR/reg_go_infer_dg.py --in $names_file --out $local_prefix/DIR.$2/$d --model $m --cl /gpfs/alpine/med110/proj-shared/hsyoo/CANCER/ML-models/REG_mGDSC/cell_lines.csv
       echo "finishing gpu $i: $(date)"
     done
 
     wait
 
-    echo "running ls $local_prefix/DIR.$2/*"
-    ls $local_prefix/DIR.$2/*
+    # echo "running ls $local_prefix/DIR.$2/*"
+    # ls $local_prefix/DIR.$2/*
 
     echo "running cp -r $local_prefix/DIR.$2/* $prefix/DIR.$2/"
     cp -r $local_prefix/DIR.$2/* $prefix/DIR.$2/
 
+    sleep 2m
+
   fi
-  echo "done: $(date)"
+  # echo "done: $(date)"
 done
 
 
