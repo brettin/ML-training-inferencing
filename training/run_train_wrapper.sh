@@ -12,7 +12,7 @@ for n in $(cat $df_file)  ; do
 
   
   printf "$n\t"
-  echo "./run_train.sh $n $device &"
+  echo "./run_train.sh $n $device 2>&1 &"
   ./run_train.sh $n $device > run_train.$n.log 2>&1 &
 
 
