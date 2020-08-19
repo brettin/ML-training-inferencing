@@ -1,4 +1,4 @@
-Running on one node on the lambda system
+## Running on one node on the lambda system
 
 run_all_models.sh arg1 arg2 arg3
 
