@@ -1,8 +1,9 @@
 ## Running on one node on the lambda system
 
-run_all_models.sh arg1 arg2 arg3
+run_all_models_lambda.sh arg1 arg2 arg3
+`nohup ../../inferencing/run_all_models_2.sh 8 ORD.input .`
 
-arg1 - number of database shards needed to get the job done (typically).
+arg1 - number of GPUs needed to get the job done (typically 8).
 
 arg2 - input file containing 8 filenames. Each named file (8 in total) contains a set
        feather files to run on.
