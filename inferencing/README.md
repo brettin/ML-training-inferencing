@@ -1,6 +1,7 @@
 ## Running on one node on the lambda system
 
 run_all_models_lambda.sh arg1 arg2 arg3
+
 `nohup ../../inferencing/run_all_models_2.sh 8 ORD.input .`
 
 arg1 - number of GPUs needed to get the job done (typically 8).
